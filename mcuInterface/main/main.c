@@ -12,24 +12,35 @@ static const char *TAG = "main";
 
 #define N_SENSORS      (NUM_ADC_CH * NUM_MUX_CH)
 #define REPORT_ID      0x00
-#define IN_REPORT_SIZE (N_SENSORS * 2)
+#define IN_REPORT_SIZE (N_SENSORS * sizeof(uint16_t))
 
 static float             g_filtered[N_SENSORS];
 static SemaphoreHandle_t mutex_filtered;
 
 static void sampling_task(void* _)
 {
-    const app_config_t* cfg = config_get();
-    daq_init(cfg->sample_rate_hz);
+    app_config_t prev = *config_get();
+
+    daq_init(prev.sample_rate_hz);
 
     lpf2_t lpf;
-    lpf2_init(&lpf, cfg->sample_rate_hz, cfg->cutoff_freq_hz);
+    lpf2_init(&lpf, prev.sample_rate_hz, prev.cutoff_freq_hz);
 
     daq_frame_t frame;
-    float        filtered[N_SENSORS];
+    float filtered[N_SENSORS];
 
-    TickType_t delay = pdMS_TO_TICKS(1000.0f / cfg->sample_rate_hz);
     while (1) {
+        app_config_t cur = *config_get();
+
+        // if either sample rate or cutoff changed, re‑init DAQ & LPF:
+        if ( cur.sample_rate_hz != prev.sample_rate_hz ||
+             cur.cutoff_freq_hz != prev.cutoff_freq_hz )
+        {
+            daq_init(cur.sample_rate_hz);
+            lpf2_init(&lpf, cur.sample_rate_hz, cur.cutoff_freq_hz);
+            prev = cur;
+        }
+
         daq_read(&frame);
         lpf2_apply(&lpf, frame.raw, filtered);
 
@@ -37,6 +48,8 @@ static void sampling_task(void* _)
             memcpy(g_filtered, filtered, sizeof(g_filtered));
             xSemaphoreGive(mutex_filtered);
         }
+
+        TickType_t delay = pdMS_TO_TICKS(1000.0f / cur.sample_rate_hz);
         vTaskDelay(delay);
     }
 }

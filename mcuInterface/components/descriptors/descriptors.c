@@ -5,24 +5,28 @@
 #define HID_ITF_NUM          0
 #define EPNUM_HID_IN         0x81
 static const uint8_t hid_report_descriptor[] = {
-    0x06, 0x00, 0xFF,  // Usage Page (Vendor)
-    0x09, 0x01,
-    0xA1, 0x01,
-    // OUT (4 bytes)
-    0x09, 0x02,
-    0x15, 0x00,
-    0x26, 0xFF, 0x00,
-    0x75, 0x08,
-    0x95, 0x04,
-    0x91, 0x02,
-    // IN (variable size, override at runtime)
-    0x09, 0x03,
-    0x15, 0x00,
-    0x26, 0xFF, 0x00,
-    0x75, 0x08,
-    0x95, 0xC0,
-    0x81, 0x02,
-    0xC0,
+    // --- Header: Vendor‑defined page & Collection ----------------------------
+    0x06, 0x00, 0xFF,       // Usage Page (Vendor-defined 0xFF00)
+    0x09, 0x01,             // Usage (0x01)
+    0xA1, 0x01,             // Collection (Application)
+
+    // --- OUT report: 2 × 16‑bit parameters (4 bytes total) -------------------
+    0x09, 0x02,             //   Usage (0x02)
+    0x15, 0x00,             //   Logical Minimum (0)
+    0x26, 0xFF, 0x00,       //   Logical Maximum (255)
+    0x75, 0x10,             //   Report Size = 16 bits
+    0x95, 0x02,             //   Report Count = 2
+    0x91, 0x02,             //   Output (Data, Var, Abs)
+
+    // --- IN report: 96 × 16‑bit sensor readings (192 bytes) -------------------
+    0x09, 0x03,             //   Usage (0x03)
+    0x15, 0x00,             //   Logical Minimum (0)
+    0x26, 0xFF, 0x00,       //   Logical Maximum (255)
+    0x75, 0x10,             //   Report Size = 16 bits
+    0x95, 0x60,             //   Report Count = 0x60 (96)
+    0x81, 0x02,             //   Input (Data, Var, Abs)
+
+    0xC0                    // End Collection
 };
 
 uint8_t const* tud_hid_descriptor_report_cb(uint8_t instance) {
@@ -77,6 +81,18 @@ void tud_hid_set_report_cb(uint8_t instance,
                            uint8_t const* buffer,
                            uint16_t bufsize)
 {
-    (void)instance; (void)report_id; (void)report_type;
-    (void)buffer;   (void)bufsize;
+    if ( report_type == HID_REPORT_TYPE_OUTPUT && bufsize == 4 )
+    {
+        // unpack the two 16‑bit parameters
+        uint16_t p1 = (uint16_t)buffer[0] | ((uint16_t)buffer[1] << 8);
+        uint16_t p2 = (uint16_t)buffer[2] | ((uint16_t)buffer[3] << 8);
+
+        // build a new config object
+        app_config_t new_cfg = *config_get();
+        new_cfg.sample_rate_hz  = (float)p1;
+        new_cfg.cutoff_freq_hz  = (float)p2;
+
+        // apply it
+        config_set(&new_cfg);
+    }
 }

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "config.h"
 #include "tinyusb.h"
 #include "class/hid/hid_device.h"
 #include "tusb.h"

@@ -16,6 +16,7 @@
     "adc_cali.h": "c",
     "freertos.h": "c",
     "sensor_array.h": "c",
-    "stdint.h": "c"
+    "stdint.h": "c",
+    "descriptors.h": "c"
   }
 }
