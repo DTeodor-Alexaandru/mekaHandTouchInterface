@@ -6,12 +6,19 @@ idf_component_register(
         "data_acquisition/daq.c"
         "filter/lpf.c"
         "comms/comms.c"
+        "descriptors/descriptors.c"
     INCLUDE_DIRS
-        "."                      # for main.c
-        "config"                 # so #include "config/config.h" works
+        "."
+        "config"
         "sensor_array"
         "data_acquisition"
         "filter"
         "comms"
-    REQUIRES driver esp_adc esp_wifi
+        "descriptors"
+    REQUIRES
+        driver
+        esp_adc
+        esp_driver_gpio
+        tinyusb
+        esp_tinyusb
 )
