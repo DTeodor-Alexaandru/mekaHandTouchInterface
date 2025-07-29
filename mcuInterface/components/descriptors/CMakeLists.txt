@@ -1,6 +1,6 @@
 idf_component_register(
     SRCS
-        "main.c"
+        "descriptors.c"
     INCLUDE_DIRS
         "."
     REQUIRES
@@ -9,8 +9,4 @@ idf_component_register(
         esp_driver_gpio
         tinyusb
         esp_tinyusb
-        daq
-        lpf
-        descriptors
-        config
 )

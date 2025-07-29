@@ -3,12 +3,10 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-#include "config/config.h"
-#include "sensor_array/sensor_array.h"
-#include "data_acquisition/daq.h"
-#include "filter/lpf.h"
-#include "comms/comms.h"
-#include "descriptors/descriptors.h"
+#include "config.h"
+#include "daq.h"
+#include "lpf.h"
+#include "descriptors.h"
 
 static const char *TAG = "main";
 

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdint.h>
-#include "sensor_array/sensor_array.h"
 
+#define NUM_ADC_CH    6    // A0..A5
+#define NUM_MUX_CH   16    // 0..15 each
 #define DAQ_TOTAL_SENSORS  (NUM_ADC_CH * NUM_MUX_CH)
 
 typedef struct {

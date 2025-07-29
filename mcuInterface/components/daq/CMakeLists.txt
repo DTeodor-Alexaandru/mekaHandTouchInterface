@@ -1,0 +1,12 @@
+idf_component_register(
+  SRCS
+      "daq.c"
+  INCLUDE_DIRS
+      "."
+  REQUIRES
+      driver
+      esp_adc
+      esp_driver_gpio
+      lpf
+      config
+)
